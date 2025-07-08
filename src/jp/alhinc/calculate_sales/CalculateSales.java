@@ -28,6 +28,7 @@ public class CalculateSales {
 	public static void main(String[] args) {
 		// 支店コードと支店名を保持するMap
 		Map<String, String> branchNames = new HashMap<>();
+
 		// 支店コードと売上金額を保持するMap
 		Map<String, Long> branchSales = new HashMap<>();
 
@@ -67,13 +68,23 @@ public class CalculateSales {
 			String line;
 			// 一行ずつ読み込む
 			while((line = br.readLine()) != null) {
-				// ※ここの読み込み処理を変更してください。(処理内容1-2)
-				System.out.println(line);
+				// 処理内容1-2
+
+				// 支店コードと支店名で文字列を分割
+			    String[] items = line.split(",");
+
+			    // readLineで読み取った情報をMapに追加
+			    branchNames.put(items[0], items[1]);
+			    branchSales.put(items[0], 0L);
 			}
+
+//			System.out.println(branchNames);
+//			System.out.println(branchSales);
 
 		} catch(IOException e) {
 			System.out.println(UNKNOWN_ERROR);
 			return false;
+
 		} finally {
 			// ファイルを開いている場合
 			if(br != null) {
