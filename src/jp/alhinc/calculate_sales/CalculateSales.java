@@ -1,8 +1,10 @@
 package jp.alhinc.calculate_sales;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -38,15 +40,15 @@ public class CalculateSales {
 		List<File> rcdFiles = new ArrayList<>();
 
 		// 売上ファイルの中身を保持するList
-		List<String> rcdLines = new ArrayList<>();
-
+		List<String> rcdContents = new ArrayList<>();
 
 		// 支店定義ファイル読み込み処理
 		if(!readFile(args[0], FILE_NAME_BRANCH_LST, branchNames, branchSales)) {
 			return;
 		}
 
-		// ※ここから集計処理を作成してください。(処理内容2-1、2-2)
+
+		// 売上ファイルの集計処理 (処理内容2-1、2-2) -----
 
 		// ***処理内容2-1
 		// コマンドライン引数で指定したディレクトリ内のファイル/フォルダをすべて取得
@@ -75,19 +77,22 @@ public class CalculateSales {
 				FileReader fr = new FileReader(file);
 				br = new BufferedReader(fr);
 
-				String rcdFilesLine;
-				// 一行ずつ読み込む
-				while((rcdFilesLine = br.readLine()) != null) {
+				// 支店コード、売上額をそれぞれ変数に格納
+				String branchCode = br.readLine();
+				String salesPrice = br.readLine();
 
-					// rcdLines変数のListに支店コード、売上額を追加
-					rcdLines.add(rcdFilesLine);
+				// List(rcdContents)に売上ファイルの中身を格納しておく *後の作業で使用
+				rcdContents.add(branchCode);
+				rcdContents.add(salesPrice);
 
-					// 売上額をMapに追加するため型変換
-					long fileSale = Long.parseLong(rcdLines.get(1));
+				// 売上金額をMapに加算していくための型変換(String→Long)
+				long fileSale = Long.parseLong(salesPrice);
 
-					// Map(branchSales)に売上ファイルの中身を追加
-					branchSales.put(rcdLines.get(0), fileSale);
-				}
+				// 読み込んだ売上金額をMap(branchSales)に加算していく処理
+				Long saleAmount = branchSales.get(branchCode) + fileSale;
+
+				// 加算した売上⾦額をMapに追加
+				branchSales.put(branchCode, saleAmount);
 			}
 
 		} catch(IOException e) {
@@ -105,12 +110,10 @@ public class CalculateSales {
 			}
 		}
 
-
 		// 支店別集計ファイル書き込み処理
 		if(!writeFile(args[0], FILE_NAME_BRANCH_OUT, branchNames, branchSales)) {
 			return;
 		}
-
 	}
 
 	/**
@@ -130,12 +133,14 @@ public class CalculateSales {
 			FileReader fr = new FileReader(file);
 			br = new BufferedReader(fr);
 
+			// 支店定義ファイルの読み込み処理 (処理内容1-2) -----
+
 			String line;
-			// 一行ずつ読み込む
+			// 支店別定義ファイルの中身を一行ずつ読み込む
 			while((line = br.readLine()) != null) {
 
 				// ***処理内容1-2
-				// 支店コードと支店名で文字列を分割
+				// カンマをキーに支店コードと支店名を分割し配列に格納
 			    String[] items = line.split(",");
 
 			    // readLineで読み取った情報をMapに追加
@@ -172,8 +177,41 @@ public class CalculateSales {
 	 * @return 書き込み可否
 	 */
 	private static boolean writeFile(String path, String fileName, Map<String, String> branchNames, Map<String, Long> branchSales) {
-		// ※ここに書き込み処理を作成してください。(処理内容3-1)
 
+		// 支店別集計ファイルの出力処理(処理内容3-1) -----
+		BufferedWriter bw = null;
+
+		// ***処理内容3-1
+		try {
+			// コマンドライン引数で指定したディレクトリに支店別集計ファイル(branch.out)を作成
+			File file = new File(path, fileName);
+			FileWriter fw = new FileWriter(file);
+			bw = new BufferedWriter(fw);
+
+			// Mapからすべてのkeyを取得
+			for(String key : branchNames.keySet()) {
+
+				// 支店コード、支店名、売上額を「branch.out」ファイルに書き込み
+				bw.write(key + "," + branchNames.get(key) + "," + branchSales.get(key));
+				bw.newLine();
+			}
+
+		} catch(IOException e) {
+			System.out.println(UNKNOWN_ERROR);
+			return false;
+
+		} finally {
+			// ファイルを開いている場合
+			if(bw != null) {
+				try {
+					// ファイルを閉じる
+					bw.close();
+				} catch(IOException e) {
+					System.out.println(UNKNOWN_ERROR);
+					return false;
+				}
+			}
+		}
 		return true;
 	}
 
