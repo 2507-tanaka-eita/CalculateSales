@@ -77,13 +77,19 @@ public class CalculateSales {
 				FileReader fr = new FileReader(file);
 				br = new BufferedReader(fr);
 
-				// 支店コード、売上額をそれぞれ変数に格納
-				String branchCode = br.readLine();
-				String salesPrice = br.readLine();
+				// List(rcdContents)に売上ファイルの中身を格納しておく
+				String line;
+				while((line = br.readLine()) != null) {
+					rcdContents.add(line);
+				}
 
-				// List(rcdContents)に売上ファイルの中身を格納しておく *後の作業で使用
-				rcdContents.add(branchCode);
-				rcdContents.add(salesPrice);
+				// 支店コード、売上額の情報を変数に格納
+				String branchCode = null;
+				String salesPrice = null;
+				for(int j = 0; j < rcdContents.size(); j += 2) {
+					branchCode = rcdContents.get(j);
+					salesPrice = rcdContents.get(j + 1);
+				}
 
 				// 売上金額をMapに加算していくための型変換(String→Long)
 				long fileSale = Long.parseLong(salesPrice);
@@ -97,6 +103,7 @@ public class CalculateSales {
 
 		} catch(IOException e) {
 			System.out.println(UNKNOWN_ERROR);
+			return;
 
 		} finally {
 			// ファイルを開いている場合
@@ -106,6 +113,7 @@ public class CalculateSales {
 					br.close();
 				} catch(IOException e) {
 					System.out.println(UNKNOWN_ERROR);
+					return;
 				}
 			}
 		}
@@ -135,13 +143,13 @@ public class CalculateSales {
 
 			// 支店定義ファイルの読み込み処理 (処理内容1-2) -----
 
-			String line;
 			// 支店別定義ファイルの中身を一行ずつ読み込む
+			String line;
 			while((line = br.readLine()) != null) {
 
 				// ***処理内容1-2
 				// カンマをキーに支店コードと支店名を分割し配列に格納
-			    String[] items = line.split(",");
+				String[] items = line.split(",");
 
 			    // readLineで読み取った情報をMapに追加
 			    branchNames.put(items[0], items[1]);
