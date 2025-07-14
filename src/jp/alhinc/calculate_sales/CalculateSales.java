@@ -38,6 +38,7 @@ public class CalculateSales {
 		// コマンドライン引数が渡されているかチェック (エラー処理3) -----
 		if (args.length != 1) {
 			System.out.println(UNKNOWN_ERROR);
+			return;
 		}
 
 		// 支店コードと支店名を保持するMap
@@ -64,9 +65,10 @@ public class CalculateSales {
 		for (int i = 0; i < files.length; i++) {
 			String filesName = files[i].getName();
 
-			// 売上ファイルがファイル情報なのか確認
-			if (files[i].isFile() && filesName.matches("^[0-9]{8}\\.rcd$")) {
+			// 売上ファイルがファイル情報なのか確認 (エラー処理3) -----
+			if (!files[i].isFile() && !filesName.matches("^[0-9]{8}\\.rcd$")) {
 				System.out.println(UNKNOWN_ERROR);
+				return;
 			}
 
 			// 売上ファイルのみ取得できるよう正規表現で条件を追加
@@ -80,7 +82,7 @@ public class CalculateSales {
 		Collections.sort(rcdFiles);
 
 		// 売上ファイル名が連番になっているかチェック (エラー処理2-1) -----
-		for (int i = 0; i < rcdFiles.size() -1; i++) {
+		for (int i = 0; i < rcdFiles.size() - 1; i++) {
 			int former = Integer.parseInt(rcdFiles.get(i).getName().substring(0, 8));
 			int latter = Integer.parseInt(rcdFiles.get(i + 1).getName().substring(0, 8));
 
@@ -126,20 +128,20 @@ public class CalculateSales {
 				String branchCode = rcdContents.get(0);
 				String salesPrice = rcdContents.get(1);
 
-				// 売上額をMapに加算していくための型変換(String→Long)
-				long fileSale = Long.parseLong(salesPrice);
-
 				// 売上額が数字なのかをチェック (エラー処理3) -----
-				if (!fileSale.matches("[0-9]")) {
+				if (!salesPrice.matches("^[0-9]+$")) {
 					System.out.println(UNKNOWN_ERROR);
 					return;
 				}
+
+				// 売上額をMapに加算していくための型変換(String→Long)
+				long fileSale = Long.parseLong(salesPrice);
 
 				// 読み込んだ売上金額をMap(branchSales)に加算していく処理
 				Long saleAmount = branchSales.get(branchCode) + fileSale;
 
 				// 売上額の合計が10桁以上になっていないかチェック(エラー処理2-2) -----
-				if(saleAmount >= 10000000000L){
+				if (saleAmount >= 10000000000L) {
 					System.out.println(CONTENTS_SALESPRICE_OVER);
 					return;
 				}
@@ -157,6 +159,7 @@ public class CalculateSales {
 					try {
 						// ファイルを閉じる
 						br.close();
+
 					} catch (IOException e) {
 						System.out.println(UNKNOWN_ERROR);
 						return;
@@ -207,11 +210,12 @@ public class CalculateSales {
 				if ((items.length != 2) || (!items[0].matches("[0-9]{3}"))) {
 					System.out.println(FILE_INVALID_FORMAT);
 					return false;
-				} else {
-					// readLineで読み取った情報をMapに追加
-					branchNames.put(items[0], items[1]);
-					branchSales.put(items[0], 0L);
+
 				}
+
+				// readLineで読み取った情報をMapに追加
+				branchNames.put(items[0], items[1]);
+				branchSales.put(items[0], 0L);
 			}
 
 		} catch (IOException e) {
@@ -224,6 +228,7 @@ public class CalculateSales {
 				try {
 					// ファイルを閉じる
 					br.close();
+
 				} catch (IOException e) {
 					System.out.println(UNKNOWN_ERROR);
 					return false;
@@ -271,6 +276,7 @@ public class CalculateSales {
 				try {
 					// ファイルを閉じる
 					bw.close();
+
 				} catch (IOException e) {
 					System.out.println(UNKNOWN_ERROR);
 					return false;
@@ -279,5 +285,4 @@ public class CalculateSales {
 		}
 		return true;
 	}
-
 }
