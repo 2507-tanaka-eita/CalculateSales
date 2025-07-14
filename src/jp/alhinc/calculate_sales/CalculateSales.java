@@ -66,14 +66,8 @@ public class CalculateSales {
 			String filesName = files[i].getName();
 
 			// 売上ファイルがファイル情報なのか確認 (エラー処理3) -----
-			if (!files[i].isFile() && !filesName.matches("^[0-9]{8}\\.rcd$")) {
-				System.out.println(UNKNOWN_ERROR);
-				return;
-			}
-
-			// 売上ファイルのみ取得できるよう正規表現で条件を追加
-			// 条件：true の場合は、取得した情報をrcdFiles変数に格納
-			if (filesName.matches("^[0-9]{8}\\.rcd$")) {
+			// 確認結果：trueだったらList(rcdFiles)へ取得結果を追加
+			if (files[i].isFile() && filesName.matches("^[0-9]{8}\\.rcd$")) {
 				rcdFiles.add(files[i]);
 			}
 		}
@@ -112,15 +106,15 @@ public class CalculateSales {
 					rcdContents.add(line);
 				}
 
-				// 売上ファイルの支店コードが支店定義ファイル内に存在するかチェック (エラー処理2-3) -----
-				if (!branchNames.containsKey(rcdContents.get(0))) {
-					System.out.println(rcdFiles.get(i).getName() + CONTENTS_BRANCHCODE);
-					return;
-				}
-
 				// 売上ファイルの中身が2行で書かれているかチェック (エラー処理2-4) -----
 				if (rcdContents.size() != 2) {
 					System.out.println(rcdFiles.get(i).getName() + CONTENTS_INVALID_FORMAT);
+					return;
+				}
+
+				// 売上ファイルの支店コードが支店定義ファイル内に存在するかチェック (エラー処理2-3) -----
+				if (!branchNames.containsKey(rcdContents.get(0))) {
+					System.out.println(rcdFiles.get(i).getName() + CONTENTS_BRANCHCODE);
 					return;
 				}
 
@@ -207,7 +201,7 @@ public class CalculateSales {
 				String[] items = line.split(",");
 
 				// 読み取った情報が指定のフォーマットになっているかチェック (エラー処理1) -----
-				if ((items.length != 2) || (!items[0].matches("[0-9]{3}"))) {
+				if ((items.length != 2) || (!items[0].matches("^[0-9]{3}$"))) {
 					System.out.println(FILE_INVALID_FORMAT);
 					return false;
 
